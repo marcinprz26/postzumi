@@ -1,5 +1,6 @@
 package pl.marcin.postzumi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GeneratorType;
 
 import javax.persistence.*;
@@ -11,12 +12,13 @@ public class Post {
     @Id
     private Long id;
 
-    @Column
+    @Column(nullable = false, length = 150)
     private String title;
 
-    @Column
+    @Column(length = 350)
     private String body;
 
+    @JsonIgnore
     @Column
     private Long userId;
 
