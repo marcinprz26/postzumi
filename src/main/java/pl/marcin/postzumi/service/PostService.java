@@ -1,6 +1,8 @@
 package pl.marcin.postzumi.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,15 +19,16 @@ public class PostService {
 
     private static final String POSTS_API = "https://jsonplaceholder.typicode.com/posts";
 
-    @Autowired
-    private WebClient.Builder webClientBuilder;
+    private final WebClient webClient;
 
     private PostRepository postRepository;
 
     @Autowired
     public PostService(PostRepository postRepository) {
+        this.webClient = WebClient.builder().build();
         this.postRepository = postRepository;
     }
+
 
     public List<Post> getAllPosts() {
         updatePosts();
@@ -43,6 +46,7 @@ public class PostService {
             post.setTitle(title);
             post.setBody(body);
             post.setEdited(true);
+            postRepository.save(post);
             return Optional.of(post);
         }
         return Optional.empty();
@@ -57,7 +61,11 @@ public class PostService {
         return false;
     }
 
-    private void updatePosts() {
+    /**
+     * Update local database by data retrieved from external API
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void updatePosts() {
         List<Post> apiPosts = getPostsFromAPI();
         List<Post> posts = (List<Post>) postRepository.findAll();
         if(posts.isEmpty()) {
@@ -76,9 +84,13 @@ public class PostService {
         }
     }
 
+    /**
+     * Retrieve data from external API
+     * @return List of obtained posts
+     */
     private List<Post> getPostsFromAPI() {
         Post[] retrievedPosts =
-                webClientBuilder.build().get().uri(POSTS_API)
+                webClient.get().uri(POSTS_API)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .retrieve()
                         .bodyToMono(Post[].class)
@@ -87,7 +99,10 @@ public class PostService {
         return List.of(retrievedPosts);
     }
 
-    @Scheduled(cron = "0 2 * * *")
+    /**
+     * Update post data everyday at 2 am
+     */
+    @Scheduled(cron = "0 0 2 * * *")
     private void updatePostsFromAPI() {
         updatePosts();
     }
