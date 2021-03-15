@@ -1,7 +1,6 @@
 package pl.marcin.postzumi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.annotations.GeneratorType;
 
 import javax.persistence.*;
 
@@ -18,9 +17,12 @@ public class Post {
     @Column(length = 350)
     private String body;
 
-    @JsonIgnore
     @Column
     private Long userId;
+
+    @JsonIgnore
+    @Column
+    private boolean edited;
 
     public Post(){}
 
@@ -29,6 +31,7 @@ public class Post {
         this.title = title;
         this.body = body;
         this.userId = userId;
+        this.edited = false;
     }
 
     public Long getId() {
@@ -61,5 +64,13 @@ public class Post {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public boolean isEdited() {
+        return edited;
+    }
+
+    public void setEdited(boolean edited) {
+        this.edited = edited;
     }
 }
