@@ -6,6 +6,8 @@ public class PostNoUser {
     private String title;
     private String body;
 
+    public PostNoUser() {}
+
     public PostNoUser(Long id, String title, String body) {
         this.id = id;
         this.title = title;
